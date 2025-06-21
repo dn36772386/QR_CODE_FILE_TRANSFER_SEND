@@ -4,6 +4,7 @@
 
 import time
 import threading
+import tkinter as tk
 from typing import Callable
 
 class TransmissionController:
@@ -32,12 +33,17 @@ class TransmissionController:
     def stop(self):
         """送信停止"""
         self.is_transmitting = False
-        
+        self.current_index = -1
+
     def _transmission_loop(self, qr_generator, qr_canvas, fps, progress_callback):
         """送信ループ"""
+        # 最初に録画開始QRを表示
+        self._display_control_qr(qr_generator, qr_canvas, "recording_start")
+        time.sleep(2.0)  # 2秒間表示
+        
         frame_interval = 1.0 / fps
-        header_duration = fps * 3  # 3秒
-        matrix_duration = fps  # 1秒
+        header_duration = fps * 2  # 2秒（短縮）
+        matrix_duration = fps * 2  # 2秒（延長）
         
         _, _, qr_per_frame = qr_canvas.get_matrix_size()
         chunk_count = qr_generator.get_chunk_count()
@@ -84,6 +90,10 @@ class TransmissionController:
             sleep_time = max(0, frame_interval - elapsed)
             time.sleep(sleep_time)
             
+        # 最後に録画終了QRを表示
+        self._display_control_qr(qr_generator, qr_canvas, "recording_end")
+        time.sleep(2.0)  # 2秒間表示
+            
     def _display_header(self, qr_generator, qr_canvas):
         """ヘッダー表示"""
         qr_canvas.clear()
@@ -104,3 +114,21 @@ class TransmissionController:
         matrix_img = qr_generator.get_image(index)
         if matrix_img:
             qr_canvas.display_image(matrix_img, 50, 50, tk.NW)
+            
+    def _display_control_qr(self, qr_generator, qr_canvas, control_type):
+        """制御用QRコード表示"""
+        import tkinter as tk
+        qr_canvas.clear()
+        control_img = qr_generator.create_control_qr(control_type)
+        if control_img:
+            x, y = qr_canvas.get_center()
+            qr_canvas.display_image(control_img, x, y)
+            
+            # メッセージ表示
+            message = "📱 録画を開始してください" if control_type == "recording_start" else "📱 録画を停止してください"
+            qr_canvas.display_text(
+                x, y + 320,
+                message,
+                ('Arial', 20, 'bold'),
+                'red' if control_type == "recording_start" else 'green'
+            )

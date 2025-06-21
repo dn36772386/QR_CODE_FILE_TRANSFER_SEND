@@ -140,3 +140,21 @@ class QRGenerator:
     def get_chunk_count(self):
         """チャンク数取得"""
         return len(self.file_data['chunks']) if self.file_data else 0
+        
+    def create_control_qr(self, control_type):
+        """制御用QRコード生成"""
+        control_data = {
+            "type": "control",
+            "action": control_type,
+            "timestamp": int(time.time())
+        }
+        
+        qr = segno.make(json.dumps(control_data), error='l')
+        buffer = BytesIO()
+        qr.save(buffer, kind='png', scale=10, border=4)
+        buffer.seek(0)
+        img = Image.open(buffer)
+        img = img.resize((600, 600), Image.Resampling.NEAREST)
+        photo = ImageTk.PhotoImage(img)
+        
+        return photo

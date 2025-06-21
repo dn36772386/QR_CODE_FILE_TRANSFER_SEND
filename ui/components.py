@@ -3,7 +3,7 @@ UIコンポーネント
 """
 
 import tkinter as tk
-from tkinter import filedialog, ttk
+from tkinter import filedialog, ttk, messagebox
 
 class ControlPanel:
     def __init__(self, parent, on_file_selected, on_start, on_stop):
@@ -47,6 +47,22 @@ class ControlPanel:
         # 設定エリア
         settings_frame = tk.Frame(self.panel, bg='#f0f0f0')
         settings_frame.pack(side=tk.LEFT, padx=20, pady=10)
+        
+        tk.Label(settings_frame, text="設定", font=('Arial', 12, 'bold'), bg='#f0f0f0').pack()
+        
+        # チャンクサイズ設定
+        chunk_frame = tk.Frame(settings_frame, bg='#f0f0f0')
+        chunk_frame.pack(pady=2)
+        tk.Label(chunk_frame, text="チャンクサイズ:", bg='#f0f0f0').pack(side=tk.LEFT)
+        self.chunk_size_var = tk.StringVar(value="800")
+        self.chunk_size_combo = ttk.Combobox(
+            chunk_frame,
+            textvariable=self.chunk_size_var,
+            values=["300", "500", "600", "800", "1000"],
+            width=10,
+            state="readonly"
+        )
+        self.chunk_size_combo.pack(side=tk.LEFT, padx=(5, 0))
         
         # FPS設定
         fps_frame = tk.Frame(settings_frame, bg='#f0f0f0')

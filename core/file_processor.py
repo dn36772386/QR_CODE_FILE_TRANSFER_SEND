@@ -15,7 +15,7 @@ except ImportError:
     import gzip
 
 class FileProcessor:
-    def __init__(self, chunk_size=2500, compression_level=3):
+    def __init__(self, chunk_size=800, compression_level=3):
         self.chunk_size = chunk_size
         self.compression_level = compression_level
         
