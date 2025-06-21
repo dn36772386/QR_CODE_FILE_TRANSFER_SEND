@@ -16,6 +16,7 @@ class QRGenerator:
         self.qr_images = {}
         self.qr_images_lock = threading.Lock()
         self.is_generating = False
+        self.control_qr_images = {}  # 制御QR用の画像を保持
         
     def set_file_data(self, file_data: Dict[str, Any]):
         """ファイルデータ設定"""
@@ -156,5 +157,9 @@ class QRGenerator:
         img = Image.open(buffer)
         img = img.resize((600, 600), Image.Resampling.NEAREST)
         photo = ImageTk.PhotoImage(img)
-        
+
+        # 制御QRイメージを保持（ガベージコレクション防止）
+        with self.qr_images_lock:
+            self.control_qr_images[control_type] = photo
+
         return photo

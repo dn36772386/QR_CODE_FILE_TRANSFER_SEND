@@ -149,8 +149,10 @@ class QRDisplayCanvas:
         """キャンバスクリア"""
         self.canvas.delete("all")
         
-    def display_image(self, image, x, y, anchor=tk.CENTER):
-        """画像表示"""
+    def display_image(self, image, x, y, anchor='center'):
+         """画像表示"""
+    if isinstance(anchor, str):
+        anchor = anchor.lower()
         self.canvas.create_image(x, y, image=image, anchor=anchor)
         
     def display_text(self, x, y, text, font, fill='black'):

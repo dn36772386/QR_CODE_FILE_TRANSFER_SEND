@@ -117,7 +117,7 @@ class TransmissionController:
             
     def _display_control_qr(self, qr_generator, qr_canvas, control_type):
         """制御用QRコード表示"""
-        import tkinter as tk
+        
         qr_canvas.clear()
         control_img = qr_generator.create_control_qr(control_type)
         if control_img:
