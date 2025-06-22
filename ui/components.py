@@ -134,14 +134,21 @@ class QRDisplayCanvas:
         )
         self.canvas.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
-    def get_matrix_size(self):
+    def get_matrix_size(self, photo_mode=False):
         """マトリックスサイズ取得"""
         self.canvas.update()
         width = self.canvas.winfo_width() - 40
         height = self.canvas.winfo_height() - 40
         
-        cols = max(1, width // self.qr_size)
-        rows = max(1, height // self.qr_size)
+        if photo_mode:
+            # 写真モード：より小さいQRコードでより多く表示
+            qr_size = 150  # 写真用の小さいサイズ
+            cols = max(5, width // qr_size)  # 最低5列
+            rows = max(4, (height - 50) // qr_size)  # 最低4行（ヘッダー分を考慮）
+        else:
+            # 動画モード：標準サイズ
+            cols = max(1, width // self.qr_size)
+            rows = max(1, height // self.qr_size)
         
         return cols, rows, cols * rows
         
