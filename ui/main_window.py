@@ -1,5 +1,5 @@
 """
-メインウィンドウUI
+メインウィンドウUI（簡略化版）
 """
 
 import tkinter as tk
@@ -57,11 +57,23 @@ class MainWindow:
             size_info = f"元: {format_size(result['original_size'])} → 圧縮: {format_size(result['compressed_size'])} " \
                        f"({100 - (result['compressed_size'] / result['original_size'] * 100):.1f}%削減)"
             self.status_bar.progress_label.config(text=size_info)
-            self.status_bar.set_status(f"準備完了: {len(result['chunks'])}チャンク", "#4CAF50")
+            
+            # QRコード生成前に総ページ数を計算
+            cols, rows, qr_per_frame = self.qr_canvas.get_matrix_size(photo_mode=True)
+            max_cols = max(5, cols)
+            max_rows = max(4, rows)
+            actual_qr_per_frame = max_cols * max_rows
+            adjusted_qr_per_frame = actual_qr_per_frame - 4  # 4隅の制御QR分を引く
+            total_pages = (len(result['chunks']) + adjusted_qr_per_frame - 1) // adjusted_qr_per_frame
+            
+            self.status_bar.set_status(
+                f"準備完了: {len(result['chunks'])}チャンク / {total_pages}ページ", 
+                "#4CAF50"
+            )
             
             self.qr_generator.set_file_data(result)
             self.qr_generator.generate_all_qrcodes(
-                self.qr_canvas.get_matrix_size(),
+                self.qr_canvas.get_matrix_size(photo_mode=True),
                 self.on_generation_progress,
                 self.on_generation_complete
             )
@@ -78,7 +90,7 @@ class MainWindow:
         self._display_header()
         
     def on_start_transmission(self, fps):
-        """送信開始"""
+        """送信開始（制御QR付きマトリックスを直接表示）"""
         self.transmission_controller.start(
             self.qr_generator,
             self.qr_canvas,
@@ -88,15 +100,18 @@ class MainWindow:
         # ボタン状態更新
         self.control_panel.start_btn.config(state=tk.DISABLED)
         self.control_panel.stop_btn.config(state=tk.NORMAL)
+        self.status_bar.set_status("送信中...", "#2196F3")
 
     def on_stop_transmission(self):
-        """送信停止"""
+        """送信停止（手動）"""
         self.transmission_controller.stop()
         # ボタン状態更新
         self.control_panel.start_btn.config(state=tk.NORMAL)
         self.control_panel.stop_btn.config(state=tk.DISABLED)
         # ヘッダー表示に戻る
         self._display_header()
+        self.status_bar.set_status("待機中", "#666")
+        self.status_bar.update_progress(0, "")
 
     def on_transmission_progress(self, progress, status):
         """送信進捗"""
@@ -109,9 +124,19 @@ class MainWindow:
         if header_img:
             x, y = self.qr_canvas.get_center()
             self.qr_canvas.display_image(header_img, x, y)
+            
+            # 総ページ数を含むメッセージ
+            cols, rows, qr_per_frame = self.qr_canvas.get_matrix_size(photo_mode=True)
+            max_cols = max(5, cols)
+            max_rows = max(4, rows)
+            actual_qr_per_frame = max_cols * max_rows
+            adjusted_qr_per_frame = actual_qr_per_frame - 4
+            chunk_count = self.qr_generator.get_chunk_count()
+            total_pages = (chunk_count + adjusted_qr_per_frame - 1) // adjusted_qr_per_frame
+            
             self.qr_canvas.display_text(
                 x, y + 320,
-                "📱 ヘッダー情報 - iPhoneで録画を開始してください",
+                f"📱 ヘッダー情報 - iPhoneでスキャンしてください\n（全{total_pages}ページ）",
                 ('Arial', 20, 'bold'),
                 'red'
             )
