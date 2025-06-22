@@ -54,11 +54,11 @@ class ControlPanel:
         chunk_frame = tk.Frame(settings_frame, bg='#f0f0f0')
         chunk_frame.pack(pady=2)
         tk.Label(chunk_frame, text="チャンクサイズ:", bg='#f0f0f0').pack(side=tk.LEFT)
-        self.chunk_size_var = tk.StringVar(value="800")
+        self.chunk_size_var = tk.StringVar(value="300")
         self.chunk_size_combo = ttk.Combobox(
             chunk_frame,
             textvariable=self.chunk_size_var,
-            values=["300", "500", "600", "800", "1000"],
+            values=["100", "150", "200", "250", "300"],
             width=10,
             state="readonly"
         )

@@ -121,7 +121,7 @@ class QRGenerator:
             "timestamp": int(time.time())
         }
         
-        qr = segno.make(json.dumps(header_info), error='l')
+        qr = segno.make(json.dumps(header_info), error='m')
         buffer = BytesIO()
         qr.save(buffer, kind='png', scale=10, border=4)
         buffer.seek(0)
@@ -238,7 +238,7 @@ class QRGenerator:
                             "data": chunks[chunk_index]
                         }
                         
-                        qr = segno.make(json.dumps(chunk_data), error='m')
+                        qr = segno.make(json.dumps(chunk_data), error='h')
                         buffer = BytesIO()
                         qr.save(buffer, kind='png', scale=3, border=1)
                         buffer.seek(0)
