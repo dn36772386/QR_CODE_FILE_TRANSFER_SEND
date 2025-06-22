@@ -42,10 +42,11 @@ class TransmissionController:
         time.sleep(2.0)  # 2秒間表示
         
         frame_interval = 1.0 / fps
-        header_duration = fps * 2  # 2秒（短縮）
-        matrix_duration = fps * 2  # 2秒（延長）
+        header_duration = fps * 2  # 2秒
+        matrix_duration = fps * 3  # 3秒（デュアル制御のため延長）
         
-        _, _, qr_per_frame = qr_canvas.get_matrix_size()
+        cols, rows, qr_per_frame = qr_canvas.get_matrix_size()
+        adjusted_qr_per_frame = qr_per_frame - 2  # 制御QR分を引く
         chunk_count = qr_generator.get_chunk_count()
         
         header_count = 0
@@ -70,15 +71,17 @@ class TransmissionController:
                     self._display_matrix(qr_generator, qr_canvas, self.current_index)
                     
                     # 進捗更新
-                    chunk_end = min(self.current_index + qr_per_frame, chunk_count)
+                    chunk_end = min(self.current_index + adjusted_qr_per_frame, chunk_count)
                     progress = (chunk_end / chunk_count) * 100
-                    status = f"チャンク: {self.current_index + 1}-{chunk_end} / {chunk_count} (サイクル: {self.cycle_count + 1})"
+                    page_number = (self.current_index // adjusted_qr_per_frame) + 1
+                    total_pages = (chunk_count + adjusted_qr_per_frame - 1) // adjusted_qr_per_frame
+                    status = f"ページ {page_number}/{total_pages} - チャンク: {self.current_index + 1}-{chunk_end} / {chunk_count} (サイクル: {self.cycle_count + 1})"
                     progress_callback(progress, status)
                     
                 matrix_count += 1
                 
                 if matrix_count >= matrix_duration:
-                    self.current_index += qr_per_frame
+                    self.current_index += adjusted_qr_per_frame
                     matrix_count = 0
                     
                     if self.current_index >= chunk_count:
@@ -114,6 +117,15 @@ class TransmissionController:
         matrix_img = qr_generator.get_image(index)
         if matrix_img:
             qr_canvas.display_image(matrix_img, 50, 50, tk.NW)
+            
+            # デュアル制御の説明を追加
+            x, y = qr_canvas.get_center()
+            qr_canvas.display_text(
+                x, 30,
+                "左上（青）と右下（緑）の制御QRコードが両方見えるようにしてください",
+                ('Arial', 14, 'bold'),
+                'black'
+            )
             
     def _display_control_qr(self, qr_generator, qr_canvas, control_type):
         """制御用QRコード表示"""
